@@ -5,7 +5,7 @@ It allows students to select a subject, view questions automatically, read answe
 
 ---
 
-## 🚀 Features
+## Features
 - Subject selection → first question appears automatically  
 - Dictionary-based QA Bank for multiple subjects  
 - Next button to cycle through questions  
@@ -15,7 +15,7 @@ It allows students to select a subject, view questions automatically, read answe
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 **Frontend:**  
 - HTML, CSS, JavaScript  
