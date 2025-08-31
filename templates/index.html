@@ -22,16 +22,14 @@ body {
 h2 {
     text-align: center;
     color: #333;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, Arial, sans-serif;
     font-size: 2.2em;
     margin-bottom: 20px;
-
 }
 label {
     font-weight: bold;
     color: #555;
 }
-input, textarea {
+select, textarea {
     width: 100%;
     padding: 12px;
     margin: 10px 0 20px 0;
@@ -51,10 +49,9 @@ button {
     color: #fff;
     cursor: pointer;
     transition: 0.3s;
+    margin-bottom: 10px;
 }
-button:hover {
-    background: #ff8c42;
-}
+button:hover { background: #ff8c42; }
 .result {
     margin-top: 20px;
     padding: 15px;
@@ -84,25 +81,163 @@ button:hover {
 <body>
 <div class="container">
     <h2>AI Auto Grader</h2>
-    <label for="question">Question:</label>
-    <input type="text" id="question" placeholder="Enter question here">
 
+    <!-- Subject Selection -->
+    <label for="subject">Select Subject:</label>
+    <select id="subject">
+        <option value="">-- Select a Subject --</option>
+        <option value="Python">Python</option>
+        <option value="Machine Learning">Machine Learning</option>
+        <option value="Web Development">Web Development</option>
+        <option value="Databases">Databases</option>
+        <option value="Data Structures">Data Structures</option>
+        <option value="Algorithms">Algorithms</option>
+        <option value="Networking">Networking</option>
+        <option value="AI">AI</option>
+        <option value="OOP">OOP</option>
+    </select>
+
+    <!-- Question Display -->
+    <label for="question">Question:</label>
+    <div id="questionBox" style="padding:12px; border:2px solid #007bff; border-radius:10px; margin-bottom:20px; background:#f9f9f9;">
+        Select a subject to start.
+    </div>
+
+    <!-- Student Answer -->
     <label for="answer">Student Answer:</label>
     <textarea id="answer" rows="5" placeholder="Enter student's answer here"></textarea>
 
+    <!-- Buttons -->
+    <button id="nextBtn">Next Question</button>
     <button id="gradeBtn">Grade Answer</button>
 
+    <!-- Result -->
     <div class="result" id="result"></div>
 </div>
 
 <script>
+const qaBank = {
+    "Python": [
+        "What is Python?",
+        "Explain Python lists.",
+        "What is a Python dictionary?",
+        "Explain Python functions.",
+        "What is a Python tuple?",
+        "Explain Python sets.",
+        "What is Python slicing?",
+        "Explain Python classes."
+    ],
+    "Machine Learning": [
+        "Define machine learning",
+        "What is supervised learning?",
+        "What is unsupervised learning?",
+        "Explain overfitting.",
+        "What is a decision tree?",
+        "What is a random forest?",
+        "Explain linear regression.",
+        "Explain logistic regression."
+    ],
+    "Web Development": [
+        "What is HTML?",
+        "What is CSS?",
+        "What is JavaScript?",
+        "Explain the difference between GET and POST requests.",
+        "What is the purpose of a CSS class?",
+        "What is the difference between inline, internal, and external CSS?",
+        "What is the DOM?",
+        "What is responsive web design?"
+    ],
+    "Databases": [
+        "What is SQL?",
+        "Explain primary key.",
+        "What is a foreign key?",
+        "What is normalization?",
+        "What is a JOIN in SQL?",
+        "What is an index in databases?",
+        "Explain ACID properties."
+    ],
+    "Data Structures": [
+        "What is a stack?",
+        "What is a queue?",
+        "What is a linked list?",
+        "What is a binary tree?",
+        "What is a hash table?",
+        "Explain graph data structure."
+    ],
+    "Algorithms": [
+        "What is an algorithm?",
+        "Explain recursion.",
+        "What is binary search?",
+        "What is merge sort?",
+        "What is time complexity?"
+    ],
+    "Networking": [
+        "What is an IP address?",
+        "What is TCP/IP?",
+        "What is DNS?",
+        "What is HTTP?",
+        "What is HTTPS?"
+    ],
+    "AI": [
+        "What is artificial intelligence?",
+        "What is supervised learning in AI?",
+        "What is reinforcement learning?",
+        "What is natural language processing?",
+        "What is computer vision?"
+    ],
+    "OOP": [
+        "Explain OOP.",
+        "What is inheritance in OOP?",
+        "Explain polymorphism in OOP.",
+        "What is encapsulation?"
+    ]
+};
+
+let currentSubject = "";
+let currentIndex = 0;
+
+// When subject is selected
+document.getElementById('subject').addEventListener('change', () => {
+    currentSubject = document.getElementById('subject').value;
+    currentIndex = 0;
+    if (currentSubject && qaBank[currentSubject].length > 0) {
+        document.getElementById('questionBox').innerText = qaBank[currentSubject][currentIndex];
+    } else {
+        document.getElementById('questionBox').innerText = "No questions available.";
+    }
+    document.getElementById('answer').value = "";
+    document.getElementById('result').innerHTML = "";
+});
+
+// Next Question button
+document.getElementById('nextBtn').addEventListener('click', () => {
+    if (!currentSubject) {
+        alert("Please select a subject first.");
+        return;
+    }
+    currentIndex++;
+    if (currentIndex < qaBank[currentSubject].length) {
+        document.getElementById('questionBox').innerText = qaBank[currentSubject][currentIndex];
+        document.getElementById('answer').value = "";
+        document.getElementById('result').innerHTML = "";
+    } else {
+        document.getElementById('questionBox').innerText = "🎉 You finished all questions in " + currentSubject;
+        document.getElementById('gradeBtn').disabled = true; // disable grading when finished
+    }
+});
+
+// Grade Button
 document.getElementById('gradeBtn').addEventListener('click', async () => {
-    const question = document.getElementById('question').value.trim();
+    if (!currentSubject) {
+        alert("Please select a subject first.");
+        return;
+    }
+    const question = document.getElementById('questionBox').innerText.trim();
     const answer = document.getElementById('answer').value.trim();
     const resultDiv = document.getElementById('result');
 
     if (!question || !answer) {
-        resultDiv.innerHTML = '<span class="error">Please enter both question and answer.</span>';
+        resultDiv.innerHTML = '<span class="error">Please enter an answer.</span>';
         return;
     }
 
@@ -112,7 +247,11 @@ document.getElementById('gradeBtn').addEventListener('click', async () => {
         const response = await fetch('/grade', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question, answer })
+            body: JSON.stringify({
+                subject: currentSubject,   // ✅ Added subject
+                question: question,
+                answer: answer
+            })
         });
 
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
@@ -130,5 +269,3 @@ document.getElementById('gradeBtn').addEventListener('click', async () => {
 </script>
 </body>
 </html>
-
-
